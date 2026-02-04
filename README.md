@@ -71,11 +71,13 @@ docker-compose up --build
 
 1. Create a new Web Service on Render
 2. Connect your GitHub repo
-3. Set:
-   - Root directory: `Backend`
-   - Build command: `pip install -r requirements.txt`
-   - Start command: `python server.py`
-4. Add environment variables:
+3. Select **Docker** as the Environment
+4. Set Docker settings:
+   - **Dockerfile Path**: `Backend/Dockerfile`
+   - **Docker Context Directory**: `/` (repo root)
+5. Set health check:
+   - **Health Check Path**: `/healthz`
+6. Add environment variables:
    - `CORS_ORIGINS` = Your Cloudflare Pages URL
    - `WHISPER_MODEL_SIZE` = `base` (or `tiny` for faster processing)
 
@@ -97,7 +99,8 @@ WHISPER_MODEL_SIZE=base
 ## API Endpoints
 
 - `GET /` - API info
-- `GET /health` - Health check
+- `GET /healthz` - Liveness probe (for Render health checks)
+- `GET /readyz` - Readiness probe
 - `POST /api/transcribe` - Transcribe audio/video file
 - `POST /transcribe` - Alternative transcription endpoint
 
