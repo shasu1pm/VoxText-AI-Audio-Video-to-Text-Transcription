@@ -1,0 +1,34 @@
+Repo Name: VoxText-AI-Audio-Video-to-Text-Transcription
+
+Description: VoxText AI is an open-source AI tool that converts your audio and video files to text. Currently supports English transcription with a two-stage processing pipeline for fast language detection.
+
+Account ID: 4062ceff58ca0cbcd8d59cc64dbbb6b4
+Subdomain: voxtext.workers.dev
+
+
+Summary (required): Initial commit
+
+
+
+Task: Add health endpoints for Render health checks.
+
+Repo structure:
+- Backend/ is the backend root.
+- There is an existing FastAPI app (app = FastAPI()) in the backend.
+
+Requirements:
+1) Create a new file in: Backend/healthz.py 
+2) In health.py define an APIRouter with two GET endpoints:
+   - GET /healthz -> return {"status": "alive"}
+   - GET /readyz  -> return {"status": "ready"}
+   Both must be fast and must NOT import or load whisper models, ffmpeg, redis, or any heavy services.
+3) Update the FastAPI entry file (the file where app = FastAPI() is defined, ex: Backend/server.py) to include the router:
+   - from app.health import router as health_router
+   - app.include_router(health_router)
+4) Do NOT break existing endpoints (/transcribe, /api/transcribe). No UI/frontend changes.
+5) If the backend currently uses a single file (server.py) and no package folder, place health.py in Backend/ and import accordingly so imports work.
+6) After changes, /healthz and /readyz must work locally and on Render.
+
+Deliverables:
+- Show the exact files changed/created.
+- Show final code for health.py and the minimal diff in the FastAPI entry file.

@@ -15,7 +15,12 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from healthz import router as health_router
+
 app = FastAPI(title="Whisper Transcription API")
+
+# Include health check router (lightweight, no heavy imports)
+app.include_router(health_router)
 
 # CORS configuration - update for production
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
@@ -69,11 +74,6 @@ def generate_srt(segments: list) -> str:
 @app.get("/")
 async def root():
     return {"status": "ok", "message": "Whisper Transcription API", "model": MODEL_SIZE}
-
-
-@app.get("/health")
-async def health():
-    return {"status": "healthy"}
 
 
 def detect_language_fast(audio_path: str) -> str:
