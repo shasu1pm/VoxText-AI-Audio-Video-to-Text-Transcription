@@ -74,7 +74,7 @@ docker-compose up --build
 3. Select **Docker** as the Environment
 4. Set Docker settings:
    - **Dockerfile Path**: `./Dockerfile`
-   - **Docker Context Directory**: `Backend`
+   - **Docker Context Directory**: `.`
 5. Set health check:
    - **Health Check Path**: `/healthz`
 6. Add environment variables:
