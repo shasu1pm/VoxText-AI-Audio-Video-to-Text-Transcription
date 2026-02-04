@@ -73,8 +73,8 @@ docker-compose up --build
 2. Connect your GitHub repo
 3. Select **Docker** as the Environment
 4. Set Docker settings:
-   - **Dockerfile Path**: `Backend/Dockerfile`
-   - **Docker Context Directory**: `/` (repo root)
+   - **Dockerfile Path**: `./Dockerfile`
+   - **Docker Context Directory**: `Backend`
 5. Set health check:
    - **Health Check Path**: `/healthz`
 6. Add environment variables:
