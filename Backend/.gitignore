@@ -37,7 +37,11 @@ env/
 .env.local
 .env.*.local
 
-# Whisper models (downloaded at runtime)
+# VOSK model directory (downloaded at runtime)
+model/
+vosk-model-*/
+
+# Whisper models (legacy, no longer used)
 *.pt
 
 # Temp files

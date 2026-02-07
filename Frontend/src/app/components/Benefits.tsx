@@ -51,7 +51,7 @@ export function Benefits() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 mb-4">
               <Sparkles className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-medium text-blue-700">
-                Powered by Whisper AI |{" "}
+                Powered by AI |{" "}
                 <a
                   href="https://www.shasuvathanan.com/"
                   target="_blank"

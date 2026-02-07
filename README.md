@@ -1,45 +1,80 @@
-# VoxText - Audio/Video to Text Transcription
+# VoxText - Audio/Video to Text Transcription (VOSK)
 
-VoxText is an open-source AI tool that converts audio and video files to text. Currently supports English transcription with a two-stage processing pipeline for fast language detection.
+VoxText is an open-source AI tool that converts audio and video files to text. Uses VOSK for **fully offline** English transcription - no external API calls required.
+
+## Features
+
+- **Fully Offline** - No internet required after initial setup
+- **Fast Transcription** - Uses lightweight VOSK model
+- **English-Only** - Detects and rejects non-English audio/video
+- **SRT Subtitle Generation** - Export with timestamps
+- **Multiple Download Formats** - DOCX, TXT, SRT
+- **Audio & Video Support** - MP3, WAV, M4A, MP4, and more
+- **Drag-and-Drop Upload** - Easy file selection
 
 ## Project Structure
 
 ```
 VoxText/
-├── Frontend/          # React + Vite + TypeScript frontend
-│   ├── src/           # Source code
-│   ├── public/        # Static assets
-│   ├── package.json   # Frontend dependencies
-│   └── Dockerfile     # For Cloudflare deployment
+├── Frontend/              # React + Vite + TypeScript frontend
+│   ├── src/               # Source code
+│   ├── public/            # Static assets
+│   ├── package.json       # Frontend dependencies
+│   └── Dockerfile         # For production deployment
 │
-├── Backend/           # FastAPI + Whisper backend
-│   ├── server.py      # Main API server
-│   ├── requirements.txt
-│   └── Dockerfile     # For Render deployment
+├── Backend/               # FastAPI + VOSK backend
+│   ├── server.py          # Main API server
+│   ├── model/             # VOSK model directory (downloaded)
+│   ├── requirements.txt   # Python dependencies
+│   ├── download_model.py  # Model download script
+│   ├── test_transcription.py  # Test script
+│   └── Dockerfile         # For production deployment
 │
-├── Documentation/     # Project documentation
-├── docker-compose.yml # Local development with Docker
+├── Audio-Video-To-Text/   # Test files folder
+├── Documentation/         # Project documentation
+├── docker-compose.yml     # Docker setup
 └── README.md
 ```
 
 ## Quick Start (Local Development)
 
 ### Prerequisites
-- Node.js 18+ (for Frontend)
-- Python 3.11+ (for Backend)
-- FFmpeg (required for audio processing)
+- **Python 3.9+** (for Backend)
+- **Node.js 18+** (for Frontend)
+- **FFmpeg** (required for audio conversion)
 
-### Option 1: Run Separately
+### Step 1: Start the Backend
 
-**Backend:**
+**Windows:**
+```cmd
+cd Backend
+start_server.bat
+```
+
+**Linux/macOS:**
 ```bash
 cd Backend
+chmod +x start_server.sh
+./start_server.sh
+```
+
+**Manual setup:**
+```bash
+cd Backend
+
+# Download VOSK model (~40MB)
+python download_model.py
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Start server
 python server.py
 # Server runs at http://localhost:8000
 ```
 
-**Frontend:**
+### Step 2: Start the Frontend
+
 ```bash
 cd Frontend
 npm install
@@ -47,7 +82,14 @@ npm run dev
 # App runs at http://localhost:5173
 ```
 
-### Option 2: Run with Docker
+### Step 3: Test It
+
+1. Open http://localhost:5173 in your browser
+2. Upload an English audio/video file
+3. Wait for transcription
+4. Download in your preferred format
+
+## Run with Docker
 
 ```bash
 docker-compose up --build
@@ -55,63 +97,130 @@ docker-compose up --build
 # Backend: http://localhost:8000
 ```
 
-## Deployment
+## Testing
 
-### Frontend (Cloudflare Pages)
+### Test Script
+```bash
+cd Backend
 
-1. Connect your GitHub repo to Cloudflare Pages
-2. Set build settings:
-   - Build command: `npm run build`
-   - Build output directory: `dist`
-   - Root directory: `Frontend`
-3. Add environment variable:
-   - `VITE_BACKEND_URL` = Your Render backend URL
+# Test with your own files
+python test_transcription.py "../Audio-Video-To-Text/your_audio.mp3"
 
-### Backend (Render)
+# Test multiple files
+python test_transcription.py file1.mp3 file2.mp4
 
-1. Create a new Web Service on Render
-2. Connect your GitHub repo
-3. Select **Docker** as the Environment
-4. Set Docker settings:
-   - **Dockerfile Path**: `./Dockerfile`
-   - **Docker Context Directory**: `.`
-5. Set health check:
-   - **Health Check Path**: `/healthz`
-6. Add environment variables:
-   - `CORS_ORIGINS` = Your Cloudflare Pages URL
-   - `WHISPER_MODEL_SIZE` = `base` (or `tiny` for faster processing)
+# Expect English (will validate language detection)
+python test_transcription.py -e english_audio.mp3
 
-## Environment Variables
-
-### Frontend (.env)
-```
-VITE_BACKEND_URL=https://your-backend.onrender.com
+# Expect non-English
+python test_transcription.py -n spanish_audio.mp3
 ```
 
-### Backend (.env)
-```
-HOST=0.0.0.0
-PORT=8000
-CORS_ORIGINS=https://your-frontend.pages.dev
-WHISPER_MODEL_SIZE=base
-```
+### Expected Results
+
+| Input | Language Detected | Transcript | Result |
+|-------|------------------|------------|--------|
+| English audio | `en` | Yes | Success |
+| English video | `en` | Yes | Success |
+| Non-English | Language code | No | Error message |
+
+## VOSK Model
+
+The backend uses the **vosk-model-small-en-us-0.15** model:
+- Size: ~40 MB
+- Language: English (US)
+- Accuracy: Good for clear speech
+- RAM: ~300 MB
+
+For better accuracy (larger files), you can use bigger models from:
+https://alphacephei.com/vosk/models
 
 ## API Endpoints
 
-- `GET /` - API info
-- `GET /healthz` - Liveness probe (for Render health checks)
-- `GET /readyz` - Readiness probe
-- `POST /api/transcribe` - Transcribe audio/video file
-- `POST /transcribe` - Alternative transcription endpoint
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API info |
+| `/healthz` | GET | Liveness probe |
+| `/readyz` | GET | Readiness probe |
+| `/transcribe` | POST | Transcribe file |
+| `/api/transcribe` | POST | Transcribe file (alternate) |
 
-## Features
+### Request
+```
+POST /transcribe
+Content-Type: multipart/form-data
 
-- Fast language detection (~10-30 seconds)
-- English-only transcription (rejects non-English files quickly)
-- SRT subtitle generation
-- Multiple download formats (DOCX, TXT, SRT)
-- Drag-and-drop file upload
-- Progress tracking
+file: <audio or video file>
+```
+
+### Response (Success - English)
+```json
+{
+  "text": "Transcribed text here...",
+  "language": "en",
+  "segments": [
+    {"start": 0.0, "end": 5.0, "text": "First segment"},
+    {"start": 5.0, "end": 10.0, "text": "Second segment"}
+  ],
+  "srt": "1\n00:00:00,000 --> 00:00:05,000\nFirst segment\n\n..."
+}
+```
+
+### Response (Non-English)
+```json
+{
+  "text": "",
+  "language": "es",
+  "segments": [],
+  "srt": ""
+}
+```
+
+## Environment Variables
+
+### Backend (.env)
+```env
+HOST=0.0.0.0
+PORT=8000
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+VOSK_MODEL_PATH=./model
+```
+
+### Frontend (.env)
+```env
+VITE_BACKEND_URL=http://localhost:8000
+```
+
+## Deployment
+
+### Backend (Render, Railway, etc.)
+1. Deploy using the root `Dockerfile`
+2. The VOSK model is downloaded during build
+3. Set `CORS_ORIGINS` to your frontend URL
+
+### Frontend (Cloudflare Pages, Vercel, etc.)
+1. Deploy the Frontend folder
+2. Set `VITE_BACKEND_URL` to your backend URL
+
+## Troubleshooting
+
+### "VOSK model not found"
+Run the model download script:
+```bash
+cd Backend
+python download_model.py
+```
+
+### "FFmpeg not found"
+Install FFmpeg:
+- Windows: `choco install ffmpeg` or download from ffmpeg.org
+- macOS: `brew install ffmpeg`
+- Linux: `sudo apt install ffmpeg`
+
+### "Transcription returns empty"
+- Check if FFmpeg is installed
+- Ensure the audio file is valid
+- Try a different file format
 
 ## License
 

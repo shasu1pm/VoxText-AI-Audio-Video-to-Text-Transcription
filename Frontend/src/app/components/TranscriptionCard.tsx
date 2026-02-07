@@ -621,7 +621,7 @@ export function TranscriptionCard() {
             }}
           />
           {/* Top Action Row */}
-          <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div className="flex flex-wrap items-center gap-3 mb-[0.45rem]">
             {/* File Upload Button */}
             <Button
               variant="ghost"
@@ -698,7 +698,7 @@ export function TranscriptionCard() {
           )}
 
           {/* Upload Area / File Loader */}
-          <div className="mt-6">
+          <div className="mt-0">
             {uploadStatus === "idle" ? (
               <UploadArea onFileSelect={handleFileSelect} />
             ) : selectedFile ? (

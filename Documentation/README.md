@@ -1,138 +1,150 @@
-# VoxText - Audio/Video to Text Transcription
+# VoxText Documentation
 
-> **Transform your audio and video files into accurate text transcripts instantly.**
+VoxText is a web app that converts audio and video files into text transcripts. The current implementation uses VOSK for English-only transcription and runs fully on your own server (no external transcription APIs).
 
-VoxText is an open-source, privacy-focused transcription tool that converts audio and video files into downloadable text formats. Built for simplicity, speed, and accuracy.
+## What VoxText Is
 
----
+VoxText provides a simple upload-to-transcript flow. Users upload an audio or video file, the backend detects whether the speech is English, and if it is, returns a transcript with timestamps. The frontend lets users download the transcript as TXT, DOCX, or SRT.
 
-## What is VoxText?
+## Current Features
 
-VoxText is a web-based transcription application that uses OpenAI's Whisper model to convert spoken content in audio/video files into written text. Users can upload files, get automatic language detection, and download transcripts in multiple formats.
+- Upload audio/video files and get text transcripts
+- English-only transcription with language detection and rejection of non-English audio
+- Download transcript as TXT, DOCX, or SRT
+- SRT generation with timestamps
+- Works offline after models are downloaded
+- Supports common formats: MP3, WAV, M4A, AAC, FLAC, MP4, TS
+- Max file size default is 200 MB (configurable)
+- Health endpoints for monitoring (`/healthz`, `/readyz`)
 
-### Key Features
+## Current Limitations
 
-- **Drag & Drop Upload** - Simple file upload with progress tracking
-- **Automatic Language Detection** - Identifies spoken language within ~30 seconds
-- **English-Only Transcription** (MVP) - High-accuracy English transcription
-- **Multiple Export Formats** - Download as DOCX, TXT, or SRT (subtitles)
-- **Real Timestamps** - SRT exports include accurate timeline markers
-- **Privacy-First** - Files processed locally, no cloud storage
-- **Mobile Responsive** - Works on desktop, tablet, and mobile
-
----
-
-## Current Scope (MVP)
-
-| Feature | Status |
-|---------|--------|
-| English transcription | Supported |
-| Other languages | Detected but blocked (98+ coming soon) |
-| Audio formats | MP3, WAV, M4A, AAC, FLAC |
-| Video formats | MP4, TS |
-| Max file size | 200 MB |
-
----
+- File upload only. The UI text mentions YouTube links, but there is no YouTube URL input or processing code in this repo.
+- English-only. Non-English files are detected and returned without transcription.
+- Synchronous processing only. There is no background worker or queue.
+- No authentication or user accounts.
 
 ## Tech Stack
 
-### Frontend
-- **React 18** + TypeScript
-- **Vite** - Fast build tool
-- **Tailwind CSS** - Utility-first styling
-- **Radix UI** - Accessible component primitives
-- **Lucide React** - Icon library
+Frontend:
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Radix UI
+- MUI icons
+- docx (DOCX export)
+- sonner (toasts)
 
-### Backend
-- **Python 3.10+**
-- **FastAPI** - High-performance API framework
-- **OpenAI Whisper** - Speech recognition model
-- **Uvicorn** - ASGI server
+Backend:
+- Python + FastAPI
+- VOSK (speech-to-text)
+- FFmpeg (audio conversion)
+- SpeechBrain (optional language ID; can be disabled)
+- uvicorn (ASGI server)
 
----
+## Quick Start (Local)
 
-## Quick Start
-
-### Prerequisites
-- Node.js 18+
-- Python 3.10+
-- FFmpeg (for audio processing)
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/your-org/voxtext.git
-cd voxtext
+Backend (Windows):
+```cmd
+cd Backend
+start_server.bat
 ```
 
-### 2. Start the backend
+Backend (macOS/Linux):
 ```bash
-cd backend
+cd Backend
+chmod +x start_server.sh
+./start_server.sh
+```
+
+Manual backend setup (any OS):
+```bash
+cd Backend
+python -m venv venv
+# Windows: venv\Scripts\activate
+# macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
+python download_model.py
 python server.py
 ```
 
-### 3. Start the frontend
+Frontend:
 ```bash
+cd Frontend
 npm install
 npm run dev
+# App runs at http://localhost:5173
 ```
 
-### 4. Open in browser
+## Environment Variables
+
+Frontend (Vite build-time envs):
+
+| Variable | Where Used | Purpose | Default |
+|---|---|---|---|
+| `VITE_BACKEND_URL` | `Frontend/vite.config.ts` | Dev server proxy target | `http://localhost:8000` |
+| `VITE_API_BASE_URL` | `TranscriptionCard.tsx` | Base URL for API calls in production | (empty) |
+| `VITE_TRANSCRIBE_URL` | `TranscriptionCard.tsx` | Override full transcribe URL | `/api/transcribe` |
+| `VITE_TRANSCRIBE_STATUS_URL` | `TranscriptionCard.tsx` | Base URL for status polling (unused by current backend) | (empty) |
+
+Backend:
+
+| Variable | Where Used | Purpose | Default |
+|---|---|---|---|
+| `HOST` | `server.py` | Bind address | `0.0.0.0` |
+| `PORT` | `server.py` | Server port | `8000` |
+| `CORS_ORIGINS` | `server.py` | Comma-separated allowed origins | `*` |
+| `VOSK_MODEL_PATH` | `server.py` | Path to VOSK model directory | `Backend/model` |
+| `DETECTION_DURATION_SECONDS` | `server.py` | Audio seconds used for language detection | `15` |
+| `LOW_RAM_MODE` | `server.py` | Skip SpeechBrain language ID | `0` |
+| `MAX_UPLOAD_MB` | `server.py` | Max upload size in MB | `200` |
+| `UPLOAD_CHUNK_SIZE` | `server.py` | Upload stream chunk size (bytes) | `1048576` |
+
+Docker-only (used by container entrypoint):
+
+| Variable | Where Used | Purpose | Default |
+|---|---|---|---|
+| `UVICORN_LIMIT_CONCURRENCY` | Docker `CMD` | Limit concurrent requests | `1` |
+
+## Tests
+
+Backend test script:
+```bash
+cd Backend
+python test_transcription.py "../Audio-Video-To-Text/example.mp3"
 ```
-http://localhost:5173
+
+You can also run without arguments to generate a short test WAV:
+```bash
+python test_transcription.py
 ```
 
----
+## Troubleshooting (Top Issues)
 
-## Project Structure
+1. FFmpeg not found
+   - Install FFmpeg and ensure it is on PATH.
+2. VOSK model not found
+   - Run `python Backend/download_model.py` or use `start_server.*` scripts.
+3. CORS errors in browser
+   - Set `CORS_ORIGINS` to your frontend URL and restart backend.
+4. File too large
+   - Default limit is 200 MB. Increase `MAX_UPLOAD_MB` if needed.
+5. Non-English detected or empty transcript
+   - This is English-only. Use clear English audio.
 
-```
-voxtext/
-├── src/                    # Frontend React application
-│   ├── app/
-│   │   ├── components/     # UI components
-│   │   └── App.tsx         # Main application
-│   └── styles/             # CSS and theme files
-├── backend/                # Python FastAPI server
-│   ├── server.py           # Main API server
-│   └── requirements.txt    # Python dependencies
-├── Documentation/          # Project documentation
-└── Audio-Video-To-Text/    # Test files
-```
+## Live URL
 
----
+A live frontend URL is not defined in this repo.
 
-## Screenshots
+## Documentation Index
 
-*Coming soon*
-
----
-
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
----
-
-## License
-
-This project is licensed under the MIT License - see [LICENSE](./LICENSE) for details.
-
----
-
-## Acknowledgments
-
-- [OpenAI Whisper](https://github.com/openai/whisper) - Speech recognition model
-- [Radix UI](https://www.radix-ui.com/) - Accessible components
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-
----
-
-## Support
-
-- Report issues: [GitHub Issues](https://github.com/your-org/voxtext/issues)
-- Documentation: [/Documentation](./Documentation/)
-
----
-
-**Made with care for the open-source community**
+- `./Setup-Guide.md`
+- `./Architecture.md`
+- `./API.md`
+- `./User-flow.md`
+- `./UI-UX.md`
+- `./Error-Handling.md`
+- `./Security-Privacy.md`
+- `./Roadmap.md`
+- `./CONTRIBUTING.md`
+- `./LICENSE`

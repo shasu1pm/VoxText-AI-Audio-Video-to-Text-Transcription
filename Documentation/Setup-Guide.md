@@ -1,469 +1,175 @@
-# Setup & Installation Guide
+# Setup and Installation Guide
 
-## VoxText - Complete Setup Instructions
-
-**Version:** 1.0
 **Last Updated:** February 2026
 
----
+This guide reflects the current repository behavior (VOSK backend, English-only).
 
 ## 1. Prerequisites
 
-### Required Software
+| Requirement | Version | Notes |
+|---|---|---|
+| Node.js | 18+ | Frontend dev/build |
+| Python | 3.9+ | Backend runtime |
+| FFmpeg | Latest | Required for audio conversion |
+| Git | Optional | Only if cloning |
+| Docker | Optional | Containerized deployment |
 
-| Software | Version | Purpose |
-|----------|---------|---------|
-| Node.js | 18.0+ | Frontend runtime |
-| Python | 3.10+ | Backend runtime |
-| FFmpeg | Latest | Audio processing |
-| Git | Latest | Version control |
+## 2. Local Setup
 
-### System Requirements
+### 2.1 Backend (Quick Script)
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| RAM | 4 GB | 8 GB+ |
-| Storage | 2 GB | 5 GB+ |
-| CPU | 2 cores | 4+ cores |
-| GPU | Not required | NVIDIA (faster processing) |
-
----
-
-## 2. Installation Steps
-
-### 2.1 Clone the Repository
-
-```bash
-git clone https://github.com/your-org/voxtext.git
-cd voxtext
+Windows:
+```cmd
+cd Backend
+start_server.bat
 ```
 
-### 2.2 Install FFmpeg
-
-**Windows (using Chocolatey):**
+macOS/Linux:
 ```bash
-choco install ffmpeg
+cd Backend
+chmod +x start_server.sh
+./start_server.sh
 ```
 
-**Windows (manual):**
-1. Download from https://ffmpeg.org/download.html
-2. Extract to `C:\ffmpeg`
-3. Add `C:\ffmpeg\bin` to PATH
+The script:
+- Checks Python and FFmpeg
+- Downloads the VOSK model if missing
+- Installs dependencies
+- Starts the server on `http://localhost:8000`
 
-**macOS:**
-```bash
-brew install ffmpeg
-```
-
-**Linux (Ubuntu/Debian):**
-```bash
-sudo apt update
-sudo apt install ffmpeg
-```
-
-**Verify installation:**
-```bash
-ffmpeg -version
-```
-
-### 2.3 Backend Setup
+### 2.2 Backend (Manual)
 
 ```bash
-# Navigate to backend directory
-cd backend
-
-# Create virtual environment (recommended)
+cd Backend
 python -m venv venv
+# Windows: venv\Scripts\activate
+# macOS/Linux: source venv/bin/activate
 
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
+# Full dependencies (includes SpeechBrain language ID)
 pip install -r requirements.txt
 
-# Start the server
+# Or low-RAM mode dependencies
+pip install -r requirements.lowram.txt
+
+# Download VOSK model (if not present)
+python download_model.py
+
+# Start the API
 python server.py
 ```
 
-**Expected output:**
-```
-Loading Whisper models...
-  - Loading 'tiny' model for fast language detection...
-  - Loading 'base' model for transcription...
-Models loaded successfully!
-INFO:     Uvicorn running on http://0.0.0.0:8000
-```
-
-### 2.4 Frontend Setup
+### 2.3 Frontend (Development)
 
 ```bash
-# Navigate to project root (new terminal)
-cd voxtext
-
-# Install dependencies
+cd Frontend
 npm install
-
-# Start development server
 npm run dev
 ```
 
-**Expected output:**
-```
-VITE v6.3.5  ready in 500 ms
-
-➜  Local:   http://localhost:5173/
-➜  Network: use --host to expose
-```
-
-### 2.5 Verify Installation
-
-1. Open http://localhost:5173 in browser
-2. Upload a test audio file
-3. Verify transcription completes successfully
-
----
+The dev server runs at `http://localhost:5173` and proxies `/api` and `/transcribe` to the backend.
 
 ## 3. Environment Variables
 
-### 3.1 Frontend (.env)
+### 3.1 Frontend
 
-Create `.env` file in project root:
+Vite envs are build-time. Set them before `npm run build`.
 
-```env
-# API Configuration (optional - defaults work for local dev)
-VITE_API_BASE_URL=http://localhost:8000
-VITE_TRANSCRIBE_URL=/api/transcribe
-```
+| Variable | Purpose | Default |
+|---|---|---|
+| `VITE_BACKEND_URL` | Dev proxy target (Vite only) | `http://localhost:8000` |
+| `VITE_API_BASE_URL` | Base URL for API calls in production | (empty) |
+| `VITE_TRANSCRIBE_URL` | Full transcribe URL override | `/api/transcribe` |
+| `VITE_TRANSCRIBE_STATUS_URL` | Status polling base URL (unused by current backend) | (empty) |
 
-### 3.2 Backend (Environment)
+### 3.2 Backend
 
-```env
-# Whisper model size (tiny, base, small, medium, large)
-WHISPER_MODEL=base
-
-# Server configuration
-HOST=0.0.0.0
-PORT=8000
-```
-
-### 3.3 Available Model Sizes
-
-| Model | Size | Speed | Accuracy | VRAM |
-|-------|------|-------|----------|------|
-| tiny | 72 MB | Fastest | Good | ~1 GB |
-| base | 139 MB | Fast | Better | ~1 GB |
-| small | 461 MB | Medium | Good | ~2 GB |
-| medium | 1.5 GB | Slow | Better | ~5 GB |
-| large | 2.9 GB | Slowest | Best | ~10 GB |
-
----
+| Variable | Purpose | Default |
+|---|---|---|
+| `HOST` | Bind address | `0.0.0.0` |
+| `PORT` | Bind port | `8000` |
+| `CORS_ORIGINS` | Allowed origins, comma-separated | `*` |
+| `VOSK_MODEL_PATH` | VOSK model directory | `Backend/model` |
+| `DETECTION_DURATION_SECONDS` | Seconds used for language detection | `15` |
+| `LOW_RAM_MODE` | Skip SpeechBrain language ID | `0` |
+| `MAX_UPLOAD_MB` | Max upload size in MB | `200` |
+| `UPLOAD_CHUNK_SIZE` | Upload stream chunk size (bytes) | `1048576` |
 
 ## 4. Docker Setup
 
-### 4.1 Using Docker Compose
+`docker-compose.yml` builds two services:
+- `frontend`: `Frontend/Dockerfile` (Nginx serving static build)
+- `backend`: root `Dockerfile` (FastAPI + VOSK)
 
+Build and run:
 ```bash
-# Build and start containers
 docker-compose up --build
-
-# Run in background
-docker-compose up -d
-
-# Stop containers
-docker-compose down
 ```
 
-### 4.2 Dockerfile (Backend)
+Defaults:
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
 
-```dockerfile
-FROM python:3.11-slim
+Backend build options:
+- `LOW_RAM=1` (default) skips SpeechBrain and installs `requirements.lowram.txt`
+- To enable full dependencies, build with `--build-arg LOW_RAM=0`
 
-WORKDIR /app
+## 5. Model Downloads
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+### 5.1 VOSK Model (Current)
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+The backend uses `vosk-model-small-en-us-0.15` (~40 MB). It is stored in `Backend/model`.
 
-# Copy application
-COPY . .
-
-# Expose port
-EXPOSE 8000
-
-# Run server
-CMD ["python", "server.py"]
-```
-
-### 4.3 docker-compose.yml
-
-```yaml
-version: '3.8'
-
-services:
-  backend:
-    build: ./backend
-    ports:
-      - "8000:8000"
-    environment:
-      - WHISPER_MODEL=base
-    volumes:
-      - whisper_cache:/root/.cache/whisper
-
-  frontend:
-    build: .
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-
-volumes:
-  whisper_cache:
-```
-
----
-
-## 5. Production Deployment
-
-### 5.1 Build Frontend
-
+Download manually:
 ```bash
-npm run build
+cd Backend
+python download_model.py
 ```
 
-Output will be in `dist/` directory.
+The `start_server.*` scripts also download this model automatically.
 
-### 5.2 Serve with Nginx
+### 5.2 SpeechBrain Language ID Model (Optional)
 
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
+If `LOW_RAM_MODE=0` and `requirements.txt` is installed, the SpeechBrain language ID model is downloaded on first use (~90 MB). Set `LOW_RAM_MODE=1` to skip it.
 
-    # Frontend static files
-    location / {
-        root /var/www/voxtext/dist;
-        try_files $uri $uri/ /index.html;
-    }
+### 5.3 Planned (Larger Models)
 
-    # API proxy
-    location /api {
-        proxy_pass http://localhost:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        client_max_body_size 200M;
-    }
+Planned improvements include optional larger VOSK models for higher accuracy. This is not implemented yet.
+
+## 6. Verification
+
+Check health endpoints:
+```bash
+curl http://localhost:8000/healthz
+curl http://localhost:8000/readyz
+```
+
+Expected responses:
+```json
+{"status":"alive"}
+```
+```json
+{"status":"ready"}
+```
+
+Test transcription:
+```bash
+curl -X POST http://localhost:8000/api/transcribe \
+  -F "file=@Audio-Video-To-Text/example.mp3"
+```
+
+Expected response (English):
+```json
+{
+  "text": "...",
+  "language": "en",
+  "segments": [
+    {"start": 0.0, "end": 5.0, "text": "..."}
+  ],
+  "srt": "..."
 }
 ```
 
-### 5.3 Run Backend with Gunicorn
+## 7. Notes
 
-```bash
-pip install gunicorn
-
-gunicorn server:app \
-    --workers 2 \
-    --worker-class uvicorn.workers.UvicornWorker \
-    --bind 0.0.0.0:8000 \
-    --timeout 300
-```
-
----
-
-## 6. Common Setup Errors
-
-### 6.1 FFmpeg Not Found
-
-**Error:**
-```
-FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
-```
-
-**Solution:**
-1. Install FFmpeg (see section 2.2)
-2. Ensure FFmpeg is in PATH
-3. Restart terminal after installation
-
-### 6.2 Whisper Model Download Fails
-
-**Error:**
-```
-ConnectionError: Unable to download model
-```
-
-**Solution:**
-1. Check internet connection
-2. Try manual download:
-   ```bash
-   python -c "import whisper; whisper.load_model('base')"
-   ```
-3. Check firewall settings
-
-### 6.3 Port Already in Use
-
-**Error:**
-```
-OSError: [Errno 98] Address already in use
-```
-
-**Solution:**
-```bash
-# Find process using port
-# Windows:
-netstat -ano | findstr :8000
-# Linux/macOS:
-lsof -i :8000
-
-# Kill process
-# Windows:
-taskkill /PID <pid> /F
-# Linux/macOS:
-kill -9 <pid>
-```
-
-### 6.4 CORS Errors
-
-**Error:**
-```
-Access to fetch has been blocked by CORS policy
-```
-
-**Solution:**
-Verify backend CORS settings allow frontend origin:
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-```
-
-### 6.5 Out of Memory
-
-**Error:**
-```
-RuntimeError: CUDA out of memory
-```
-
-**Solution:**
-1. Use smaller model: `WHISPER_MODEL=tiny`
-2. Process shorter audio files
-3. Increase system swap space
-
-### 6.6 Module Not Found
-
-**Error:**
-```
-ModuleNotFoundError: No module named 'whisper'
-```
-
-**Solution:**
-```bash
-# Ensure virtual environment is activated
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-
-# Reinstall dependencies
-pip install -r requirements.txt
-```
-
----
-
-## 7. Development Tips
-
-### 7.1 Hot Reload
-
-Frontend (Vite) has hot reload enabled by default.
-
-Backend can use:
-```bash
-uvicorn server:app --reload
-```
-
-### 7.2 Debug Mode
-
-Enable verbose logging:
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-```
-
-### 7.3 Testing API
-
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# Test transcription
-curl -X POST http://localhost:8000/api/transcribe \
-  -F "file=@test-audio.mp3"
-```
-
----
-
-## 8. Updating
-
-### 8.1 Update Dependencies
-
-```bash
-# Frontend
-npm update
-
-# Backend
-pip install --upgrade -r requirements.txt
-```
-
-### 8.2 Update Whisper
-
-```bash
-pip install --upgrade openai-whisper
-```
-
----
-
-## 9. Uninstallation
-
-### 9.1 Remove Application
-
-```bash
-# Delete project folder
-rm -rf voxtext
-
-# Remove Python packages (if using global)
-pip uninstall openai-whisper fastapi uvicorn
-```
-
-### 9.2 Remove Whisper Models
-
-```bash
-# Windows
-rmdir /s %USERPROFILE%\.cache\whisper
-
-# macOS/Linux
-rm -rf ~/.cache/whisper
-```
-
----
-
-## 10. Support
-
-If you encounter issues not covered here:
-
-1. Check [GitHub Issues](https://github.com/your-org/voxtext/issues)
-2. Search existing issues first
-3. Create new issue with:
-   - Error message
-   - System info (OS, Python version, Node version)
-   - Steps to reproduce
-
----
-
-*Setup guide maintained by the VoxText team*
+- The current backend is synchronous and handles one file per request.
+- The frontend UI only supports file uploads. YouTube link processing is not implemented.

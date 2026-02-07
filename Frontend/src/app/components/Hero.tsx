@@ -2,7 +2,7 @@ import { Badge } from "@/app/components/ui/badge";
 
 export function Hero() {
   return (
-    <section className="w-full pt-3 md:pt-4 pb-6 md:pb-8 lg:pb-12">
+    <section className="w-full pt-3 md:pt-4 pb-[0.45rem] md:pb-[0.6rem] lg:pb-[0.9rem]">
       <div className="container mx-auto px-4 max-w-4xl text-center">
         {/* Top Badge */}
         <Badge
@@ -13,17 +13,17 @@ export function Hero() {
         </Badge>
 
         {/* Main Heading */}
-        <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 leading-tight">
-          <span className="text-blue-600">Convert Your Audio/Video to</span>
-          <br />
-          <span className="text-blue-600">Text for Free</span>
-        </h1>
+        <h2 className="text-[1.3125rem] md:text-[1.575rem] lg:text-[2.1rem] xl:text-[2.625rem] font-bold mb-4 md:mb-6 leading-tight">
+          <span className="text-blue-600">
+            Convert your Audio/Video File & YouTube Links to Text For Free
+          </span>
+        </h2>
 
         {/* Subheading */}
-        <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-          Transcribe your recordings in English with AI.
+        <p className="text-[0.7rem] md:text-[0.7875rem] lg:text-[0.875rem] text-muted-foreground max-w-2xl mx-auto">
+          Free AI Transcription of your uploaded Audio/Video & YouTube Transcript Generator.
           <br />
-          Get results in minutes, up to 99% accuracy.
+          Instantly transcribe recordings or paste a YouTube link.
         </p>
       </div>
     </section>

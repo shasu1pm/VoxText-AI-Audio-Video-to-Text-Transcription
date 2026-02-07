@@ -1,155 +1,77 @@
 # API Documentation
 
-## VoxText - Backend API Reference
-
-**Version:** 1.0
 **Base URL:** `http://localhost:8000`
 **Last Updated:** February 2026
 
----
+This API is synchronous and English-only. It uses VOSK for transcription.
 
-## 1. Overview
+## 1. Endpoints
 
-The VoxText API provides audio/video transcription services using OpenAI's Whisper model. The API is built with FastAPI and supports both synchronous transcription and fast language detection.
+### 1.1 Health Checks
 
-### Base URLs
+`GET /healthz`
 
-| Environment | URL |
-|-------------|-----|
-| Development | `http://localhost:8000` |
-| Production | `https://api.your-domain.com` |
-
-### Authentication
-
-Currently, the API does not require authentication (open access for MVP).
-
----
-
-## 2. Endpoints
-
-### 2.1 Health Check
-
-Check if the API server is running.
-
-**Endpoint:** `GET /health`
-
-**Response:**
+Response:
 ```json
-{
-  "status": "healthy"
-}
+{"status":"alive"}
 ```
 
-**Status Codes:**
-| Code | Description |
-|------|-------------|
-| 200 | Server is healthy |
-| 503 | Server unavailable |
+`GET /readyz`
 
----
+Response:
+```json
+{"status":"ready"}
+```
 
-### 2.2 Root Info
+### 1.2 Root Info
 
-Get API information and model status.
+`GET /`
 
-**Endpoint:** `GET /`
-
-**Response:**
+Response:
 ```json
 {
   "status": "ok",
-  "message": "Whisper Transcription API",
-  "model": "base"
+  "message": "VOSK Transcription API",
+  "model": "vosk-model-small-en-us"
 }
 ```
 
----
+### 1.3 Transcribe
 
-### 2.3 Transcribe Audio/Video
+`POST /api/transcribe` or `POST /transcribe`
 
-Transcribe an audio or video file to text.
+Content-Type: `multipart/form-data`
 
-**Endpoint:** `POST /api/transcribe` or `POST /transcribe`
+Accepted file fields (any one is required):
+- `file`
+- `audio`
+- `media`
+- `upload`
 
-**Content-Type:** `multipart/form-data`
+Supported types (frontend):
+- MP3, WAV, M4A, AAC, FLAC, MP4, TS
 
-**Request Parameters:**
+Backend also accepts:
+- `.mov` / `video/quicktime`
+- `application/octet-stream` (some browsers)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file` | File | Yes* | Audio/video file |
-| `audio` | File | Yes* | Alternative parameter name |
-| `media` | File | Yes* | Alternative parameter name |
-| `upload` | File | Yes* | Alternative parameter name |
-
-*At least one file parameter is required.
-
-**Supported File Types:**
-
-| Type | MIME Types | Extensions |
-|------|------------|------------|
-| Audio | `audio/mpeg`, `audio/wav`, `audio/x-m4a`, `audio/aac`, `audio/flac`, `audio/mp3`, `audio/m4a` | .mp3, .wav, .m4a, .aac, .flac |
-| Video | `video/mp4`, `video/mp2t`, `video/quicktime` | .mp4, .ts, .mov |
-
-**File Constraints:**
-- Maximum size: 200 MB
-- Maximum duration: ~60 minutes (based on size)
-
----
+Max size:
+- Default 200 MB (configurable via `MAX_UPLOAD_MB`)
 
 #### Success Response (English)
 
-**Status Code:** `200 OK`
-
 ```json
 {
-  "text": "Hello, this is a sample transcription of the audio file. The content continues here with more text from the recording.",
+  "text": "Full transcript...",
   "language": "en",
   "segments": [
-    {
-      "start": 0.0,
-      "end": 2.5,
-      "text": "Hello, this is a sample transcription"
-    },
-    {
-      "start": 2.5,
-      "end": 5.0,
-      "text": "of the audio file."
-    },
-    {
-      "start": 5.0,
-      "end": 8.5,
-      "text": "The content continues here with more text from the recording."
-    }
+    {"start": 0.0, "end": 5.0, "text": "First segment"}
   ],
-  "srt": "1\n00:00:00,000 --> 00:00:02,500\nHello, this is a sample transcription\n\n2\n00:00:02,500 --> 00:00:05,000\nof the audio file.\n\n3\n00:00:05,000 --> 00:00:08,500\nThe content continues here with more text from the recording."
+  "srt": "1\n00:00:00,000 --> 00:00:05,000\nFirst segment\n"
 }
 ```
 
-**Response Fields:**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `text` | string | Full transcript text |
-| `language` | string | Detected language code (ISO 639-1) |
-| `segments` | array | Timed segments with start/end timestamps |
-| `srt` | string | Pre-formatted SRT subtitle content |
-
-**Segment Object:**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `start` | number | Start time in seconds |
-| `end` | number | End time in seconds |
-| `text` | string | Transcript text for this segment |
-
----
-
 #### Success Response (Non-English)
-
-When a non-English language is detected, the API returns immediately without full transcription.
-
-**Status Code:** `200 OK`
 
 ```json
 {
@@ -160,307 +82,51 @@ When a non-English language is detected, the API returns immediately without ful
 }
 ```
 
-**Common Language Codes:**
-
-| Code | Language |
-|------|----------|
-| `en` | English |
-| `es` | Spanish |
-| `fr` | French |
-| `de` | German |
-| `ta` | Tamil |
-| `hi` | Hindi |
-| `zh` | Chinese |
-| `ja` | Japanese |
-| `ko` | Korean |
-| `ar` | Arabic |
-
----
-
 #### Error Responses
 
-**400 Bad Request - No File:**
+- `400` No file provided
 ```json
-{
-  "detail": "No file provided"
-}
+{"detail":"No file provided"}
 ```
 
-**400 Bad Request - Invalid File Type:**
+- `400` Unsupported file type
 ```json
-{
-  "detail": "Unsupported file type: application/pdf. Please upload an audio or video file."
-}
+{"detail":"Unsupported file type: application/pdf. Please upload an audio or video file."}
 ```
 
-**500 Internal Server Error - Processing Failed:**
+- `413` File too large
 ```json
-{
-  "detail": "Transcription failed: [error message]"
-}
+{"detail":"File exceeds 200 MB limit."}
 ```
 
-**500 Internal Server Error - File Save Failed:**
+- `500` Conversion or transcription failure
 ```json
-{
-  "detail": "Failed to save uploaded file: [error message]"
-}
+{"detail":"Transcription failed: <error message>"}
 ```
 
----
+## 2. Processing Behavior
 
-## 3. Request Examples
+1. Upload is streamed to a temp file on disk.
+2. First 15 seconds are converted to WAV for language detection.
+3. If detected language is not English, the API returns early with empty transcript.
+4. If English, the full file is converted and transcribed by VOSK.
+5. Response includes full text, segments, and SRT.
 
-### 3.1 cURL
+## 3. CORS
 
-```bash
-# Basic request
-curl -X POST "http://localhost:8000/api/transcribe" \
-  -F "file=@audio.mp3"
+CORS is controlled by `CORS_ORIGINS`. Default is `*`. Set a comma-separated list for production.
 
-# With verbose output
-curl -X POST "http://localhost:8000/api/transcribe" \
-  -F "file=@audio.mp3" \
-  -v
+## 4. Authentication
 
-# Save response to file
-curl -X POST "http://localhost:8000/api/transcribe" \
-  -F "file=@audio.mp3" \
-  -o response.json
-```
+None. The API is open by default.
 
-### 3.2 JavaScript (Fetch)
+## 5. Rate Limits
 
-```javascript
-const formData = new FormData();
-formData.append('file', fileInput.files[0]);
+No built-in rate limiting. Recommended to add limits at a reverse proxy if exposing publicly.
 
-const response = await fetch('http://localhost:8000/api/transcribe', {
-  method: 'POST',
-  body: formData,
-});
+## 6. OpenAPI
 
-const result = await response.json();
-console.log(result.text);
-console.log(result.language);
-```
-
-### 3.3 Python (Requests)
-
-```python
-import requests
-
-with open('audio.mp3', 'rb') as f:
-    response = requests.post(
-        'http://localhost:8000/api/transcribe',
-        files={'file': f}
-    )
-
-result = response.json()
-print(result['text'])
-print(result['language'])
-```
-
----
-
-## 4. Processing Pipeline
-
-### 4.1 Two-Stage Processing
-
-The API uses an optimized two-stage processing pipeline:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    PROCESSING PIPELINE                       │
-└─────────────────────────────────────────────────────────────┘
-
-Stage 1: Fast Language Detection (~10-30 seconds)
-├── Load first 30 seconds of audio
-├── Use 'tiny' Whisper model (72 MB)
-├── Detect language
-└── If non-English → Return immediately (skip Stage 2)
-
-Stage 2: Full Transcription (only for English)
-├── Use 'base' Whisper model (139 MB)
-├── Process entire audio file
-├── Generate segments with timestamps
-└── Create SRT content
-```
-
-### 4.2 Performance Characteristics
-
-| Stage | Duration | Model | Audio Processed |
-|-------|----------|-------|-----------------|
-| Language Detection | 10-30 sec | tiny | First 30 sec |
-| Full Transcription | 30 sec - 3 min | base | Entire file |
-
----
-
-## 5. SRT Format
-
-### 5.1 Format Specification
-
-The SRT (SubRip Subtitle) format follows this structure:
-
-```
-[sequence number]
-[start time] --> [end time]
-[subtitle text]
-
-[sequence number]
-...
-```
-
-### 5.2 Timestamp Format
-
-```
-HH:MM:SS,mmm --> HH:MM:SS,mmm
-```
-
-- `HH`: Hours (00-99)
-- `MM`: Minutes (00-59)
-- `SS`: Seconds (00-59)
-- `mmm`: Milliseconds (000-999)
-
-### 5.3 Example SRT Output
-
-```
-1
-00:00:00,000 --> 00:00:02,500
-Hello, welcome to this presentation.
-
-2
-00:00:02,500 --> 00:00:05,800
-Today we'll be discussing transcription technology.
-
-3
-00:00:05,800 --> 00:00:09,200
-Let's start with an overview of how it works.
-```
-
----
-
-## 6. Error Handling
-
-### 6.1 HTTP Status Codes
-
-| Code | Meaning | When |
-|------|---------|------|
-| 200 | Success | Transcription completed |
-| 400 | Bad Request | Invalid input (no file, wrong type) |
-| 500 | Server Error | Processing failed |
-| 503 | Service Unavailable | Server starting up |
-
-### 6.2 Error Response Format
-
-All errors follow this format:
-
-```json
-{
-  "detail": "Human-readable error message"
-}
-```
-
-### 6.3 Client-Side Error Handling
-
-```javascript
-try {
-  const response = await fetch('/api/transcribe', {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail);
-  }
-
-  const result = await response.json();
-  // Handle success
-} catch (error) {
-  // Handle error
-  console.error('Transcription failed:', error.message);
-}
-```
-
----
-
-## 7. Rate Limits
-
-### 7.1 Current Limits (MVP)
-
-| Limit | Value |
-|-------|-------|
-| Requests per minute | Unlimited |
-| Concurrent requests | 1 (sequential processing) |
-| Max file size | 200 MB |
-
-### 7.2 Future Considerations
-
-Rate limiting may be implemented in future versions:
-- Per-IP rate limiting
-- Queue-based processing
-- API key authentication
-
----
-
-## 8. CORS Configuration
-
-The API supports Cross-Origin Resource Sharing (CORS) for browser-based clients.
-
-### 8.1 Allowed Origins
-
-| Environment | Allowed Origins |
-|-------------|-----------------|
-| Development | `*` (all origins) |
-| Production | Specific domain only |
-
-### 8.2 Allowed Methods
-
-- `GET`
-- `POST`
-- `OPTIONS`
-
-### 8.3 Allowed Headers
-
-- `Content-Type`
-- `Authorization`
-- All standard headers
-
----
-
-## 9. OpenAPI Documentation
-
-FastAPI automatically generates OpenAPI documentation.
-
-### 9.1 Swagger UI
-
-```
-http://localhost:8000/docs
-```
-
-### 9.2 ReDoc
-
-```
-http://localhost:8000/redoc
-```
-
-### 9.3 OpenAPI JSON
-
-```
-http://localhost:8000/openapi.json
-```
-
----
-
-## 10. Changelog
-
-### v1.0.0 (February 2026)
-- Initial release
-- English-only transcription
-- Two-stage processing pipeline
-- DOCX, TXT, SRT export support
-
----
-
-*API documentation maintained by the VoxText team*
+FastAPI exposes auto-generated docs:
+- `/docs`
+- `/redoc`
+- `/openapi.json`

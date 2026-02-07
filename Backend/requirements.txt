@@ -1,10 +1,21 @@
---index-url https://download.pytorch.org/whl/cpu
---extra-index-url https://pypi.org/simple
+# VoxText Backend - VOSK Transcription
+# No external API calls - fully offline
 
-numpy==1.26.4
-torch==2.2.2
+numpy>=1.24.0
 fastapi>=0.100.0
 uvicorn[standard]>=0.23.0
 python-multipart>=0.0.6
-openai-whisper>=20231117
 python-dotenv>=1.0.0
+
+# VOSK for offline speech recognition
+vosk>=0.3.45
+
+# Language detection for English-only gating
+langdetect>=1.0.9
+
+# Audio-based language identification
+speechbrain>=1.0.0
+torchaudio>=2.0.0
+
+# For testing (optional)
+requests>=2.28.0

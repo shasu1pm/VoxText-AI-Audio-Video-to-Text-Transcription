@@ -1,241 +1,98 @@
 # Product Requirements Document (PRD)
 
-## VoxText - Audio/Video to Text Transcription
-
-**Version:** 1.0 (MVP)
+**Product:** VoxText
+**Version:** 1.0
 **Last Updated:** February 2026
-**Status:** In Development
 
----
+## 1. Problem Statement
 
-## 1. Executive Summary
+Users need a simple and private way to transcribe audio and video files without relying on paid services or cloud-based processing. Many existing tools are expensive, require accounts, or store user data.
 
-VoxText is a web-based application that enables users to upload audio or video files and receive accurate text transcriptions. The MVP focuses on English-only transcription with plans to expand to 98+ languages.
+## 2. Target Users
 
----
+- Content creators who need transcripts or subtitles
+- Students transcribing lectures
+- Journalists and researchers processing interviews
+- Anyone who wants local, private transcription
 
-## 2. Problem Statement
+## 3. Goals
 
-### User Pain Points
-- Existing transcription tools are expensive or require subscriptions
-- Many tools upload files to cloud servers, raising privacy concerns
-- Language detection and error handling are often poor
-- Export options are limited or cumbersome
+- Provide a fast, simple upload-to-transcript workflow
+- Support common audio and video formats
+- Enforce English-only transcription (MVP scope)
+- Allow download as TXT, DOCX, and SRT
+- Keep the system self-hostable and privacy-friendly
 
-### Solution
-VoxText provides free, privacy-focused transcription with:
-- Local file processing (no cloud uploads)
-- Fast language detection (~30 seconds)
-- Multiple export formats (DOCX, TXT, SRT)
-- Clear error messaging for unsupported languages
+## 4. Non-Goals (Current)
 
----
-
-## 3. Target Users
-
-### Primary Users
-- **Content Creators** - YouTubers, podcasters needing transcripts/subtitles
-- **Students** - Transcribing lectures and interviews
-- **Journalists** - Converting interview recordings to text
-- **Researchers** - Processing audio data for analysis
-
-### User Personas
-
-#### Persona 1: Sarah (Content Creator)
-- Age: 28
-- Creates YouTube tutorials
-- Needs: Quick subtitle generation (SRT) for videos
-- Pain: Current tools are slow and expensive
-
-#### Persona 2: Alex (Student)
-- Age: 22
-- Records university lectures
-- Needs: Text transcripts for study notes
-- Pain: Manually transcribing takes hours
-
----
-
-## 4. Feature Requirements
-
-### 4.1 Core Features (MVP)
-
-| Feature | Priority | Status |
-|---------|----------|--------|
-| File upload (drag & drop) | P0 | Complete |
-| Audio format support (MP3, WAV, M4A, AAC, FLAC) | P0 | Complete |
-| Video format support (MP4, TS) | P0 | Complete |
-| Language detection | P0 | Complete |
-| English transcription | P0 | Complete |
-| Download as TXT | P0 | Complete |
-| Download as DOCX | P0 | Complete |
-| Download as SRT | P0 | Complete |
-| Non-English error handling | P0 | Complete |
-| Reset functionality | P0 | Complete |
-| Mobile responsive design | P1 | Complete |
-| Progress indicator | P1 | Complete |
-
-### 4.2 Language Support
-
-**MVP (v1.0)**
-- English (en, en-US, en-GB)
-
-**Future (v2.0+)**
-- Spanish, French, German, Portuguese
-- Hindi, Tamil, Telugu
-- Chinese, Japanese, Korean
-- 98+ languages total
-
-### 4.3 File Constraints
-
-| Constraint | Value |
-|------------|-------|
-| Max file size | 200 MB |
-| Supported audio | MP3, WAV, M4A, AAC, FLAC |
-| Supported video | MP4, TS |
-| Max duration | ~60 minutes (based on size) |
-
----
-
-## 5. User Stories
-
-### Upload Flow
-```
-As a user,
-I want to upload an audio/video file,
-So that I can get a text transcript.
-```
-
-**Acceptance Criteria:**
-- [ ] User can drag & drop files
-- [ ] User can click to browse files
-- [ ] Progress bar shows upload status
-- [ ] File type validation occurs immediately
-- [ ] File size validation (max 200MB)
-
-### Language Detection
-```
-As a user,
-I want the system to detect the spoken language,
-So that I know if my file will be transcribed.
-```
-
-**Acceptance Criteria:**
-- [ ] Language detected within 30-60 seconds
-- [ ] Language name displayed in badge
-- [ ] Non-English shows clear error message
-- [ ] Reset option available after error
-
-### Download Transcript
-```
-As a user,
-I want to download my transcript in different formats,
-So that I can use it in various applications.
-```
-
-**Acceptance Criteria:**
-- [ ] Dropdown shows DOCX, TXT, SRT options
-- [ ] Download button disabled until format selected
-- [ ] Filename follows pattern: `{original} (voxtext).{ext}`
-- [ ] SRT includes accurate timestamps
-
----
-
-## 6. Non-Functional Requirements
-
-### Performance
-- Language detection: < 60 seconds
-- Full transcription: < 3 minutes for 10-minute audio
-- UI response time: < 100ms
-
-### Security
-- No file storage on servers
-- Files processed in memory only
-- No user tracking or analytics
-- HTTPS required in production
-
-### Accessibility
-- WCAG 2.1 AA compliant
-- Keyboard navigation support
-- Screen reader compatible
-- High contrast mode support
-
-### Browser Support
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
-
----
-
-## 7. Success Metrics
-
-| Metric | Target |
-|--------|--------|
-| Transcription accuracy | > 95% for clear English |
-| Language detection accuracy | > 99% |
-| User task completion rate | > 90% |
-| Error rate | < 5% |
-| Page load time | < 3 seconds |
-
----
-
-## 8. Out of Scope (MVP)
-
-The following features are NOT included in MVP:
 - Multi-language transcription
-- User accounts / authentication
-- Cloud storage of transcripts
 - Real-time transcription
 - Speaker diarization
-- Translation services
-- API access for developers
-- Batch processing
+- User accounts or billing
+- YouTube link ingestion (not implemented in this repo)
 
----
+## 5. Core User Stories
 
-## 9. Dependencies
+1. As a user, I want to upload an audio/video file and receive a transcript.
+2. As a user, I want to know if my file is non-English before waiting for a full transcript.
+3. As a user, I want to download the transcript in common formats.
+4. As a user, I want a clear error message when something goes wrong.
 
-### Technical Dependencies
-- OpenAI Whisper model availability
-- FFmpeg for audio processing
-- Python 3.10+ runtime
-- Node.js 18+ runtime
+## 6. Functional Requirements
 
-### External Dependencies
-- None (fully self-contained)
+- Upload audio/video files via browser
+- Validate file type and size on the frontend
+- Backend accepts multipart uploads via `/api/transcribe` and `/transcribe`
+- Language detection using first 15 seconds of audio
+- English-only transcription with VOSK
+- Return transcript, segments, and SRT
+- Provide downloads as TXT, DOCX, SRT
+- Provide health endpoints for deployment checks
 
----
+## 7. Non-Functional Requirements
 
-## 10. Risks & Mitigations
+Performance:
+- Detect language within 15-30 seconds for typical files
+- Transcribe a 10 minute English file in a few minutes (depends on hardware)
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Whisper model accuracy issues | High | Use "base" model, upgrade to "medium" if needed |
-| Large file processing timeout | Medium | Implement chunked processing |
-| Browser compatibility issues | Low | Test on all major browsers |
-| Non-English user confusion | Medium | Clear error messaging, roadmap communication |
+Reliability:
+- Handle invalid file types and sizes gracefully
+- Return clear errors on conversion/transcription failure
 
----
+Privacy:
+- Files processed locally on the server
+- Temporary files deleted after each request
+- No analytics or user tracking
 
-## 11. Timeline
+## 8. Success Metrics
 
-| Phase | Duration | Deliverables |
-|-------|----------|--------------|
-| Phase 1 (MVP) | Complete | English transcription, 3 export formats |
-| Phase 2 | Q2 2026 | 10 additional languages |
-| Phase 3 | Q3 2026 | Full 98+ language support |
-| Phase 4 | Q4 2026 | Translation, diarization features |
+- >95% transcription accuracy on clear English speech
+- >90% of users complete a successful transcript download
+- <5% error rate for valid inputs
 
----
+## 9. Assumptions and Constraints
 
-## 12. Approval
+- English-only (non-English files are rejected)
+- No background worker or queue
+- Max file size defaults to 200 MB
+- FFmpeg is required on the backend host
 
-| Role | Name | Date |
-|------|------|------|
-| Product Owner | | |
-| Tech Lead | | |
-| Design Lead | | |
+## 10. Current vs Planned
 
----
+Current:
+- VOSK English-only transcription
+- File upload workflow
+- TXT/DOCX/SRT download
 
-*Document maintained by the VoxText team*
+Planned:
+- Optional larger VOSK models for higher accuracy
+- Optional YouTube link ingestion
+- Background processing / job status endpoints
+- Multi-language support
+
+## 11. Out of Scope
+
+- Speaker diarization
+- Real-time streaming
+- Translation
+- Billing and user management

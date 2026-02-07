@@ -1,0 +1,125 @@
+INFO:     Started server process [14436]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:11720 - "GET /healthz HTTP/1.1" 200 OK
+CategoricalEncoder.expect_len was never called: assuming category count of 107 to be correct! Sanity check your encoder using `.expect_len`. Ensure that downstream code also uses the correct size. If you are sure this does not apply to you, use `.ignore_len`.
+[Stage 1] Converting first 15s for language detection: Song-New.mp3
+[Stage 1] Detecting language from audio...
+Loading SpeechBrain language identification model...
+(First run will download ~90MB model, please wait...)
+Language ID model loaded successfully!
+[LangID] Detected: pt: Portuguese, confidence: -2.218
+[LangID] Low confidence (-2.218), defaulting to English for transcription attempt
+[Stage 1] Detected: en (English), confidence: -2.22
+[Stage 2] English detected, converting full file...
+[Stage 3] Full transcription with VOSK...
+Loading VOSK model from: D:\Claude Code\Done-Audio to text - Only for English\(VOSK) VoxText-AI-Audio-Video-to-Text-Transcription\Backend\model
+VOSK model loaded successfully!
+[Stage 3] Complete: 954 characters, 22 segments
+INFO:     127.0.0.1:11730 - "POST /transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: Other Language.mp4
+[Stage 1] Detecting language from audio...
+[LangID] Detected: ta: Tamil, confidence: -0.000
+[Stage 1] Detected: ta (Tamil), confidence: -0.00
+[Stage 1] Non-English detected (ta), returning early
+INFO:     127.0.0.1:11769 - "POST /transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: Audio.mp3
+[Stage 1] Detecting language from audio...
+[LangID] Detected: en: English, confidence: -0.000
+[Stage 1] Detected: en (English), confidence: -0.00
+[Stage 2] English detected, converting full file...
+[Stage 3] Full transcription with VOSK...
+[Stage 3] Complete: 12815 characters, 135 segments
+INFO:     127.0.0.1:11866 - "POST /transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: Audio.mp3
+[Stage 1] Detecting language from audio...
+[LangID] Detected: en: English, confidence: -0.000
+[Stage 1] Detected: en (English), confidence: -0.00
+[Stage 2] English detected, converting full file...
+[Stage 3] Full transcription with VOSK...
+[Stage 3] Complete: 12817 characters, 135 segments
+INFO:     127.0.0.1:12530 - "POST /transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: Video.mp4
+[Stage 1] Detecting language from audio...
+[LangID] Detected: en: English, confidence: -0.000
+[Stage 1] Detected: en (English), confidence: -0.00
+[Stage 2] English detected, converting full file...
+[Stage 3] Full transcription with VOSK...
+[Stage 3] Complete: 2449 characters, 25 segments
+INFO:     127.0.0.1:8760 - "POST /transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: File Music.mp4
+[Stage 1] Detecting language from audio...
+[LangID] Detected: da: Danish, confidence: -0.866
+[Stage 1] Detected: da (Danish), confidence: -0.87
+[Stage 1] Non-English detected (da), returning early
+INFO:     127.0.0.1:4661 - "POST /api/transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: Song-New.mp3
+[Stage 1] Detecting language from audio...
+[LangID] Detected: pt: Portuguese, confidence: -2.218
+[LangID] Low confidence (-2.218), defaulting to English for transcription attempt
+[Stage 1] Detected: en (English), confidence: -2.22
+[Stage 2] English detected, converting full file...
+[Stage 3] Full transcription with VOSK...
+[Stage 3] Complete: 965 characters, 22 segments
+INFO:     127.0.0.1:2456 - "POST /api/transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: File Music.mp4
+[Stage 1] Detecting language from audio...
+[LangID] Detected: da: Danish, confidence: -0.866
+[Stage 1] Detected: da (Danish), confidence: -0.87
+[Stage 1] Non-English detected (da), returning early
+INFO:     127.0.0.1:5515 - "POST /transcribe HTTP/1.1" 200 OK
+INFO:     Started server process [25752]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+CategoricalEncoder.expect_len was never called: assuming category count of 107 to be correct! Sanity check your encoder using `.expect_len`. Ensure that downstream code also uses the correct size. If you are sure this does not apply to you, use `.ignore_len`.
+[Stage 1] Converting first 15s for language detection: File Music.mp4
+[Stage 1] Detecting language from audio...
+Loading SpeechBrain language identification model...
+(First run will download ~90MB model, please wait...)
+Language ID model loaded successfully!
+[LangID] Detected: da: Danish, confidence: -0.866
+[LangID] Low confidence (-0.866), defaulting to English for transcription attempt
+[Stage 1] Detected: en (English), confidence: -0.87
+[Stage 2] English detected, converting full file...
+[Stage 3] Full transcription with VOSK...
+Loading VOSK model from: D:\Claude Code\Done-Audio to text - Only for English\(VOSK) VoxText-AI-Audio-Video-to-Text-Transcription\Backend\model
+VOSK model loaded successfully!
+[Stage 3] Complete: 646 characters, 20 segments
+INFO:     127.0.0.1:11877 - "POST /transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: Other Language.mp4
+[Stage 1] Detecting language from audio...
+[LangID] Detected: ta: Tamil, confidence: -0.000
+[Stage 1] Detected: ta (Tamil), confidence: -0.00
+[Stage 1] Non-English detected (ta), returning early
+INFO:     127.0.0.1:12809 - "POST /transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: 2-File Music.mp4
+[Stage 1] Detecting language from audio...
+[LangID] Detected: sn: Shona, confidence: -2.099
+[LangID] Low confidence (-2.099), defaulting to English for transcription attempt
+[Stage 1] Detected: en (English), confidence: -2.10
+[Stage 2] English detected, converting full file...
+[Stage 3] Full transcription with VOSK...
+[Stage 3] Complete: 1387 characters, 33 segments
+INFO:     127.0.0.1:2757 - "POST /api/transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: Japanese Listening Practice _ Supermarket and Christmas in Japan.mp4
+[Stage 1] Detecting language from audio...
+[LangID] Detected: ja: Japanese, confidence: -0.000
+[Stage 1] Detected: ja (Japanese), confidence: -0.00
+[Stage 1] Non-English detected (ja), returning early
+INFO:     127.0.0.1:11910 - "POST /api/transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: T-Audio.mp4
+[Stage 1] Detecting language from audio...
+[LangID] Detected: ta: Tamil, confidence: -0.000
+[Stage 1] Detected: ta (Tamil), confidence: -0.00
+[Stage 1] Non-English detected (ta), returning early
+INFO:     127.0.0.1:10184 - "POST /api/transcribe HTTP/1.1" 200 OK
+[Stage 1] Converting first 15s for language detection: What is LangChain_ (Explained In 2 minutes).mp4
+[Stage 1] Detecting language from audio...
+[LangID] Detected: en: English, confidence: -0.000
+[Stage 1] Detected: en (English), confidence: -0.00
+[Stage 2] English detected, converting full file...
+[Stage 3] Full transcription with VOSK...
+[Stage 3] Complete: 2448 characters, 25 segments
+INFO:     127.0.0.1:1762 - "POST /api/transcribe HTTP/1.1" 200 OK

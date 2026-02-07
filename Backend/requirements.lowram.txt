@@ -1,0 +1,14 @@
+# VoxText Backend - Low RAM Profile (VOSK Transcription)
+# Optimized to stay within ~300 MB RAM by avoiding heavy language-ID models.
+
+numpy>=1.24.0
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+python-multipart>=0.0.6
+python-dotenv>=1.0.0
+
+# VOSK for offline speech recognition
+vosk>=0.3.45
+
+# Lightweight language hinting (optional)
+langdetect>=1.0.9
