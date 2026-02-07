@@ -1,6 +1,7 @@
 # VoxText - Audio/Video to Text Transcription (VOSK)
 
 VoxText is an open-source AI tool that converts audio and video files to text. Uses VOSK for **fully offline** English transcription - no external API calls required.
+Live: https://voxtext-ai.pages.dev/
 
 ## Features
 
