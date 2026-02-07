@@ -189,6 +189,9 @@ VOSK_MODEL_PATH=./model
 ### Frontend (.env)
 ```env
 VITE_BACKEND_URL=http://localhost:8000
+# For production builds (Cloudflare Pages/Vercel/etc.), set one of:
+# VITE_TRANSCRIBE_URL=https://your-backend.example.com/transcribe
+# VITE_API_BASE_URL=https://your-backend.example.com
 ```
 
 ## Deployment
@@ -197,10 +200,18 @@ VITE_BACKEND_URL=http://localhost:8000
 1. Deploy using the root `Dockerfile`
 2. The VOSK model is downloaded during build
 3. Set `CORS_ORIGINS` to your frontend URL
+4. Optional: build with `--build-arg LOW_RAM=1` to disable SpeechBrain language-ID (lower RAM, less accurate detection)
 
 ### Frontend (Cloudflare Pages, Vercel, etc.)
 1. Deploy the Frontend folder
-2. Set `VITE_BACKEND_URL` to your backend URL
+2. Set `VITE_TRANSCRIBE_URL` (or `VITE_API_BASE_URL`) to your backend URL
+
+### Cloudflare 413 / 405 Notes
+- `413 Payload Too Large` from Cloudflare means the request never reached the backend.
+  - Fix by pointing the frontend at a backend hostname that is **not** Cloudflare-proxied
+    (DNS-only/gray-cloud), or by upgrading Cloudflare to a plan with higher upload limits.
+- `405 Method Not Allowed` on `https://<pages>.dev/api/transcribe` indicates the frontend is
+  still calling the static Pages origin (no API route). Ensure `VITE_TRANSCRIBE_URL` is set.
 
 ## Troubleshooting
 

@@ -12,6 +12,12 @@ RUN npm ci
 # Copy source files
 COPY . .
 
+# Optional API endpoints for production build (passed via build args)
+ARG VITE_TRANSCRIBE_URL
+ARG VITE_API_BASE_URL
+ENV VITE_TRANSCRIBE_URL=$VITE_TRANSCRIBE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Build the application
 RUN npm run build
 

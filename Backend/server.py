@@ -44,7 +44,7 @@ app.add_middleware(
 )
 
 # Allowed English language codes (must match frontend expectations)
-ALLOWED_ENGLISH_CODES = ["en", "english"]
+ALLOWED_ENGLISH_CODES = {"en", "english", "en-us", "en-gb", "eng"}
 
 # Language detection settings (override via env for low-RAM mode)
 DETECTION_DURATION_SECONDS = int(os.getenv("DETECTION_DURATION_SECONDS", "15"))
@@ -121,6 +121,44 @@ LANGUAGE_NAMES = {
     "eu": "Basque",
     "gl": "Galician",
 }
+
+UNKNOWN_LANGUAGE_TOKENS = {"", "unknown", "unk", "und", "undefined", "none", "n/a", "na", "-", "null"}
+
+LANGUAGE_CODE_ALIASES = {
+    "en-us": "en",
+    "en-gb": "en",
+    "eng": "en",
+    "english": "en",
+    "zh-cn": "zh",
+    "zh-tw": "zh",
+    "cmn": "zh",
+    "pt-br": "pt",
+    "pt-pt": "pt",
+}
+
+
+def normalize_language_code(raw_code: Optional[str]) -> str:
+    """Normalize language code and strip unknown values."""
+    if not raw_code:
+        return ""
+    code = str(raw_code).strip().lower()
+    if ":" in code:
+        code = code.split(":", 1)[0].strip()
+    code = code.replace("_", "-")
+    if code in UNKNOWN_LANGUAGE_TOKENS:
+        return ""
+    if code in LANGUAGE_CODE_ALIASES:
+        return LANGUAGE_CODE_ALIASES[code]
+    if "-" in code:
+        base = code.split("-", 1)[0]
+        if base in LANGUAGE_NAMES or base in ALLOWED_ENGLISH_CODES:
+            return LANGUAGE_CODE_ALIASES.get(base, base)
+    return code
+
+
+def is_english_language(code: str) -> bool:
+    """Return True if the language code represents English."""
+    return normalize_language_code(code) == "en"
 
 
 def get_vosk_model():
@@ -338,29 +376,12 @@ def detect_language_from_audio(wav_path: str) -> Tuple[str, float]:
         score = prediction[1].item()
         lang_label = prediction[3][0]  # e.g., "ta: Tamil" or "en: English"
 
-        # Parse language code from label (format: "xx: Language Name")
-        lang_code = lang_label.split(":")[0].strip().lower()
-
-        # Map some language codes to standard ISO codes
-        lang_code_map = {
-            "zh-cn": "zh",
-            "zh-tw": "zh",
-            "cmn": "zh",  # Mandarin
-        }
-        lang_code = lang_code_map.get(lang_code, lang_code)
+        # Normalize language code from label (format: "xx: Language Name")
+        lang_code = normalize_language_code(lang_label)
+        if not lang_code:
+            return fallback_language_detection(wav_path)
 
         print(f"[LangID] Detected: {lang_label}, confidence: {score:.3f}")
-
-        # LOW CONFIDENCE HANDLING:
-        # SpeechBrain is trained on speech, not music/singing.
-        # When confidence is low (score < -0.8), the model is uncertain.
-        # In these cases, default to English since this is an English-only service.
-        # This allows songs and music with vocals to be transcribed.
-        LOW_CONFIDENCE_THRESHOLD = -0.8
-
-        if score < LOW_CONFIDENCE_THRESHOLD:
-            print(f"[LangID] Low confidence ({score:.3f}), defaulting to English for transcription attempt")
-            return ("en", score)
 
         return (lang_code, score)
 
@@ -387,8 +408,8 @@ def fallback_language_detection(wav_path: str) -> Tuple[str, float]:
         # Try langdetect on the text as a hint
         try:
             from langdetect import detect
-            detected = detect(text)
-            if detected != "en":
+            detected = normalize_language_code(detect(text))
+            if detected:
                 return (detected, 1.0 - avg_confidence)
         except:
             pass
@@ -534,7 +555,9 @@ async def root():
 
 
 @app.post("/transcribe")
+@app.post("/transcribe/")
 @app.post("/api/transcribe")
+@app.post("/api/transcribe/")
 async def transcribe(
     file: Optional[UploadFile] = File(None),
     audio: Optional[UploadFile] = File(None),
@@ -599,10 +622,14 @@ async def transcribe(
         # Use SpeechBrain to detect language from audio
         print(f"[Stage 1] Detecting language from audio...")
         detected_language, confidence = detect_language_from_audio(wav_path)
+        detected_language = normalize_language_code(detected_language)
+        if not detected_language:
+            detected_language, confidence = fallback_language_detection(wav_path)
+            detected_language = normalize_language_code(detected_language) or "en"
         print(f"[Stage 1] Detected: {detected_language} ({get_language_display_name(detected_language)}), confidence: {confidence:.2f}")
 
         # If non-English, return immediately (fast path)
-        if detected_language not in ALLOWED_ENGLISH_CODES:
+        if not is_english_language(detected_language):
             print(f"[Stage 1] Non-English detected ({detected_language}), returning early")
             return JSONResponse({
                 "text": "",

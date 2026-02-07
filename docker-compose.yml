@@ -5,6 +5,8 @@ services:
     build:
       context: ./Frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_TRANSCRIBE_URL=http://localhost:8000/transcribe
     ports:
       - "3000:80"
     depends_on:

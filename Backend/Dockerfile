@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Build-time toggle for low RAM mode
-ARG LOW_RAM=1
+ARG LOW_RAM=0
 ENV LOW_RAM_MODE=${LOW_RAM}
 
 # Copy requirements for better caching
